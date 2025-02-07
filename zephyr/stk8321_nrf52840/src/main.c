@@ -22,7 +22,7 @@ const struct gpio_dt_spec ledspec = GPIO_DT_SPEC_GET(DT_NODELABEL(led0), gpios);
 #define SPIOP SPI_WORD_SET(8) | SPI_TRANSFER_MSB
 struct spi_dt_spec spispec = SPI_DT_SPEC_GET(DT_NODELABEL(bme280), SPIOP, 0);
 
-static void peripheral_init(void)
+static int peripheral_init(void)
 {
 	int err;
 
@@ -31,13 +31,22 @@ static void peripheral_init(void)
 	{
 		return 0;
 	}
+
+	if (!gpio_is_ready_dt(&ledspec))
+		return false;
+
+	if (gpio_pin_configure_dt(&ledspec, GPIO_OUTPUT_INACTIVE) < 0)
+		return false;
+
+	return 0;
 }
 
 int main(void)
 {
+	peripheral_init();
 
+	stk8321_set_spi_spec(spispec);
 	stk8321_read_chip_id();
-
 
 	while (1)
 	{

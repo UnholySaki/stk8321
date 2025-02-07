@@ -15,7 +15,7 @@
 
 static struct spi_dt_spec spi_spec;
 
-void rfm_set_spi_dev(struct spi_dt_spec spispec)
+void stk8321_set_spi_spec(struct spi_dt_spec spispec)
 {
     spi_spec = spispec;
 }
@@ -32,10 +32,10 @@ static int stk8321_read_reg(uint8_t reg, uint8_t *data, uint8_t size)
     struct spi_buf_set rx_spi_buf_set = {.buffers = &rx_spi_bufs, .count = 1};
 
     /* STEP 4.2 - Call the transceive function */
-    err = spi_transceive_dt(&spispec, &tx_spi_buf_set, &rx_spi_buf_set);
+    err = spi_transceive_dt(&spi_spec, &tx_spi_buf_set, &rx_spi_buf_set);
     if (err < 0)
     {
-        LOG_ERR("spi_transceive_dt() failed, err: %d", err);
+
         return err;
     }
 
@@ -52,10 +52,10 @@ static int stk8321_write_reg(uint8_t reg, uint8_t value)
     struct spi_buf_set tx_spi_buf_set = {.buffers = &tx_spi_buf, .count = 1};
 
     /* STEP 5.2 - call the spi_write_dt function with SPISPEC to write buffers */
-    err = spi_write_dt(&spispec, &tx_spi_buf_set);
+    err = spi_write_dt(&spi_spec, &tx_spi_buf_set);
     if (err < 0)
     {
-        LOG_ERR("spi_write_dt() failed, err %d", err);
+
         return err;
     }
 
@@ -74,6 +74,6 @@ void stk8321_read_accel_x(void) {
     uint8_t _size = 2;
     uint8_t _values[_size];
     stk8321_read_reg(REG_DATA_X_LSB, _values, _size);
-    
+
     stk8321_read_reg(REG_DATA_X_MSB, _values + 1, _size);
 }
