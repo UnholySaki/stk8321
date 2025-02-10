@@ -2,78 +2,113 @@
  * @file stk8321.c
  * @brief STK8321 driver implementation
  * @date 2025/02/07
- * 
+ *
  * @note This file is used to implement the STK8321 driver
- * @author 
+ * @author
  */
 
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/spi.h>
-
 #include "../inc/stk8321.h"
+#include "../inc/stk8321_spi.h"
 #include "../inc/stk8321_registers.h"
 
-static struct spi_dt_spec spi_spec;
+static uint8_t cur_pow_state = POWMODE_ACTIVE;
 
-void stk8321_set_spi_spec(struct spi_dt_spec spispec)
+void stk8321_init(void)
 {
-    spi_spec = spispec;
+    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+
+    stk8321_set_range(RANGE_2G);
+    stk8321_set_bandwidth(BW_31_25_HZ);
+    stk8321_reset_offset();
+
+    stk8321_pwr_mode_set(POWMODE_ACTIVE);
 }
 
-static int stk8321_read_reg(uint8_t reg, uint8_t *data, uint8_t size)
+void stk8321_pwr_mode_set(uint8_t power_mode)
 {
-    int err;
-
-    /* STEP 4.1 - Set the transmit and receive buffers */
-    uint8_t tx_buffer = reg | 0x80;
-    struct spi_buf tx_spi_buf = {.buf = (void *)&tx_buffer, .len = 1};
-    struct spi_buf_set tx_spi_buf_set = {.buffers = &tx_spi_buf, .count = 1};
-    struct spi_buf rx_spi_bufs = {.buf = data, .len = size};
-    struct spi_buf_set rx_spi_buf_set = {.buffers = &rx_spi_bufs, .count = 1};
-
-    /* STEP 4.2 - Call the transceive function */
-    err = spi_transceive_dt(&spi_spec, &tx_spi_buf_set, &rx_spi_buf_set);
-    if (err < 0)
+    if (power_mode == cur_pow_state)
     {
-
-        return err;
+        return;
     }
-
-    return 0;
+    cur_pow_state = power_mode;
+    stk8321_write_reg(REG_POWMODE, power_mode);
 }
 
-static int stk8321_write_reg(uint8_t reg, uint8_t value)
+void stk8321_set_range(uint8_t range)
 {
-    int err;
-
-    /* STEP 5.1 - declare a tx buffer having register address and data */
-    uint8_t tx_buf[] = {(reg), value};
-    struct spi_buf tx_spi_buf = {.buf = tx_buf, .len = sizeof(tx_buf)};
-    struct spi_buf_set tx_spi_buf_set = {.buffers = &tx_spi_buf, .count = 1};
-
-    /* STEP 5.2 - call the spi_write_dt function with SPISPEC to write buffers */
-    err = spi_write_dt(&spi_spec, &tx_spi_buf_set);
-    if (err < 0)
-    {
-
-        return err;
-    }
-
-    return 0;
+    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+    stk8321_write_reg(REG_RANGESEL, range);
+    stk8321_pwr_mode_set(POWMODE_ACTIVE);
 }
 
-void stk8321_read_chip_id(void)
+void stk8321_set_bandwidth(uint8_t bandwidth)
 {
-    uint8_t _size = 2;
-    uint8_t _values[_size];
-    stk8321_read_reg(REG_CHIP_ID, _values, _size);
+    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+    stk8321_write_reg(REG_BANDWIDTHSEL, bandwidth);
+    stk8321_pwr_mode_set(POWMODE_ACTIVE);
 }
 
+void stk8321_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset)
+{
+    stk8321_write_reg(REG_OFST_X, x_offset);
+    stk8321_write_reg(REG_OFST_Y, y_offset);
+    stk8321_write_reg(REG_OFST_Z, z_offset);
+}
 
-void stk8321_read_accel_x(void) {
-    uint8_t _size = 2;
-    uint8_t _values[_size];
-    stk8321_read_reg(REG_DATA_X_LSB, _values, _size);
+void stk8321_reset_offset(void)
+{
+    stk8321_write_reg(REG_OFST_RESET, 0x01);
+}
 
-    stk8321_read_reg(REG_DATA_X_MSB, _values + 1, _size);
+void stk8321_set_int1_map(uint8_t value)
+{
+    stk8321_write_reg(REG_INT_MAP_1, value);
+}
+
+/*============= GET DATA FUNCTIONS ================*/
+uint8_t stk8321_read_chip_id(void)
+{
+    uint8_t size = 2;
+    uint8_t values[size];
+    stk8321_read_reg(REG_CHIP_ID, values, size);
+    return values[1];
+}
+
+uint16_t stk8321_read_accel_x(void)
+{
+    uint8_t size = 2;
+    uint8_t values[size];
+    uint16_t lsb_val, msb_val;
+
+    stk8321_read_reg(REG_DATA_X_LSB, values, size);
+    lsb_val = values[1] >> 4;
+    stk8321_read_reg(REG_DATA_X_MSB, values, size);
+    msb_val = values[1];
+    return (msb_val << 4) | lsb_val;
+}
+
+uint16_t stk8321_read_accel_y(void)
+{
+    uint8_t size = 2;
+    uint8_t values[size];
+    uint16_t lsb_val, msb_val;
+
+    stk8321_read_reg(REG_DATA_Y_LSB, values, size);
+    lsb_val = values[1] >> 4;
+    stk8321_read_reg(REG_DATA_Y_MSB, values, size);
+    msb_val = values[1];
+    return (msb_val << 4) | lsb_val;
+}
+
+uint16_t stk8321_read_accel_z(void)
+{
+    uint8_t size = 2;
+    uint8_t values[size];
+    uint16_t lsb_val, msb_val;
+
+    stk8321_read_reg(REG_DATA_Z_LSB, values, size);
+    lsb_val = values[1] >> 4;
+    stk8321_read_reg(REG_DATA_Z_MSB, values, size);
+    msb_val = values[1];
+    return (msb_val << 4) | lsb_val;
 }

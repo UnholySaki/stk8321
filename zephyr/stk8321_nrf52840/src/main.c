@@ -6,6 +6,7 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/printk.h>
 
 /* STEP 1.2 - Include the header files for SPI, GPIO and devicetree */
 #include <zephyr/device.h>
@@ -15,6 +16,7 @@
 
 #include "../inc/main.h"
 #include "../inc/stk8321.h"
+#include "../inc/stk8321_spi.h"
 
 const struct gpio_dt_spec ledspec = GPIO_DT_SPEC_GET(DT_NODELABEL(led0), gpios);
 
@@ -43,13 +45,26 @@ static int peripheral_init(void)
 
 int main(void)
 {
+	uint16_t accel_x, accel_y, accel_z;
 	peripheral_init();
 
 	stk8321_set_spi_spec(spispec);
+	stk8321_init();
 	stk8321_read_chip_id();
+
+	printk("Hello World! %s\n", CONFIG_BOARD);
 
 	while (1)
 	{
+		accel_x = stk8321_read_accel_x();
+		printk("Accel X: %.4f\n", (float) accel_x / 1024);
+
+		accel_y = stk8321_read_accel_y();
+		printk("Accel Y: %.4f\n", (float) accel_y / 1024);
+
+		accel_z = stk8321_read_accel_z();
+		printk("Accel Z: %.4f\n", (float) accel_z / 1024);
+
 		gpio_pin_toggle_dt(&ledspec);
 		k_msleep(DELAY_VALUES);
 	}
