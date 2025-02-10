@@ -56,6 +56,12 @@ int main(void)
 
 	while (1)
 	{
+		/**
+		 * The output will be ranging from 0 to 4
+		 * 0 or 4 means the acceleration is 0
+		 * 1 or 3 means the acceleration is +1g or -1g
+		 * 2 means the acceleration is +-2g
+		 */
 		accel_x = stk8321_read_accel_x();
 		printk("Accel X: %.4f\n", (float) accel_x / 1024);
 

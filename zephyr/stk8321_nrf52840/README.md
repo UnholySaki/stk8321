@@ -1,5 +1,5 @@
 # STK8321 NRF52840 Project
-
+[AUTO-GENERATED]
 This project is designed to interface the STK8321 accelerometer with the NRF52840 microcontroller using the Zephyr RTOS.
 
 ## Table of Contents
@@ -59,3 +59,6 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Additional Information
+Please find my information in the profile to contact me.
