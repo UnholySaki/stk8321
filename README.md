@@ -1,7 +1,7 @@
-# STK8321 NRF52840 Project
+# STK8321 Project
 
 Driver for STK8321, currently supporting:
-- ZephyrOS
+- ZephyrOS (tested on NRF52840dk)
 
 Pending:
 - Arduino framework MCUs (arduino + esp32)
@@ -11,7 +11,6 @@ Pending:
 ## Table of Contents
 - [Introduction](#introduction)
 - [Contributing](#contributing)
-- [License](#license)
 - [Additional Information](#additional-information)
 
 
