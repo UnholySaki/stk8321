@@ -13,22 +13,23 @@
 
 static uint8_t cur_pow_state = POWMODE_ACTIVE;
 
-void stk8321_init(void)
+void stk8321_init(uint8_t range, uint8_t bw)
 {
     stk8321_pwr_mode_set(POWMODE_SUSPEND);
 
     /* Setup parameters */
     stk8321_set_range(RANGE_2G);
     stk8321_set_bandwidth(BW_31_25_HZ);
-    stk8321_reset_offset();
+    stk8321_cfg_data_setup(DEF_DATA_PROTECTED, DEF_DATA_FILTERED);
+    stk8321_rst_offset();
 
     /*set up interrupt pins*/
-    stk8321_int_pin_cfg(INT_PIN_1, false, false); // INT1 is push-pull and active high
+    stk8321_cfg_int_pin(INT_PIN_1, DEF_INT_OD_MODE, DEF_INT_LV_MODE); // INT1 is push-pull and active high
     stk8321_cfg_en_sig_motion();
+    stk8321_cfg_int_pin_latch(INT_LATCH_MODE);
 
     stk8321_pwr_mode_set(POWMODE_ACTIVE);
 }
-
 
 void stk8321_cfg_en_sig_motion(void)
 {
@@ -48,6 +49,25 @@ void stk8321_cfg_en_sig_motion(void)
     stk8321_cfg_set_int1_map(SIG_MOT_INT_PIN);
 }
 
+/*======================== SETUP FUNCTIONS ===========================*/
+
+/* REG 0x0F */
+void stk8321_set_range(uint8_t range)
+{
+    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+    stk8321_write_reg(REG_RANGESEL, range);
+    stk8321_pwr_mode_set(POWMODE_ACTIVE);
+}
+
+/* REG 0x10 */
+void stk8321_set_bandwidth(uint8_t bandwidth)
+{
+    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+    stk8321_write_reg(REG_BANDWIDTHSEL, bandwidth);
+    stk8321_pwr_mode_set(POWMODE_ACTIVE);
+}
+
+/* REG 0x11 */
 void stk8321_pwr_mode_set(uint8_t power_mode)
 {
     if (power_mode == cur_pow_state)
@@ -58,34 +78,25 @@ void stk8321_pwr_mode_set(uint8_t power_mode)
     stk8321_write_reg(REG_POWMODE, power_mode);
 }
 
-void stk8321_set_range(uint8_t range)
+/* REG 0x13 */
+void stk8321_cfg_data_setup(bool is_protected, bool is_filtered)
 {
-    stk8321_pwr_mode_set(POWMODE_SUSPEND);
-    stk8321_write_reg(REG_RANGESEL, range);
-    stk8321_pwr_mode_set(POWMODE_ACTIVE);
+    uint8_t config = 0;
+    if (!is_protected)
+    {
+        config |= DAT_PROT_BIT;
+    }
+    if (!is_filtered)
+    {
+        config |= DAT_FILT_BIT;
+    }
+    stk8321_write_reg(REG_DAT_SETUP, config);
 }
-
-void stk8321_set_bandwidth(uint8_t bandwidth)
-{
-    stk8321_pwr_mode_set(POWMODE_SUSPEND);
-    stk8321_write_reg(REG_BANDWIDTHSEL, bandwidth);
-    stk8321_pwr_mode_set(POWMODE_ACTIVE);
-}
-
-void stk8321_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset)
-{
-    stk8321_write_reg(REG_OFST_X, x_offset);
-    stk8321_write_reg(REG_OFST_Y, y_offset);
-    stk8321_write_reg(REG_OFST_Z, z_offset);
-}
-
 /* REG 0x14 */
-void stk8321_reset_offset(void)
+void stk8321_sw_rst(void)
 {
-    stk8321_write_reg(REG_OFST_RESET, 0x01);
+    stk8321_write_reg(REG_SW_RST, HARD_RST_VAL);
 }
-
-/* ================= Interrupt ================= */
 
 /* REG 0x16 */
 void stk8321_cfg_en_int_1(bool en_x, bool en_y, bool en_z)
@@ -122,7 +133,7 @@ void stk8321_cfg_set_int1_map(uint8_t int_mode)
 }
 
 /* REG 0x20 */
-void stk8321_int_pin_cfg(uint8_t int_pin, bool is_open_drain, bool is_active_low)
+void stk8321_cfg_int_pin(uint8_t int_pin, bool is_open_drain, bool is_active_low)
 {
     uint8_t config = 0;
     if (int_pin != INT_PIN_1 && int_pin != INT_PIN_2)
@@ -148,6 +159,12 @@ void stk8321_int_pin_cfg(uint8_t int_pin, bool is_open_drain, bool is_active_low
     stk8321_write_reg(REG_INT_CFG_1, config);
 }
 
+/* REG 0x21 */
+void stk8321_cfg_int_pin_latch(int_latch_mode_e mode)
+{
+    stk8321_write_reg(REG_INT_CFG_2, mode);
+}
+
 /* REG 0x27 */
 void stk8321_cfg_slope_dur(uint8_t dur)
 {
@@ -162,6 +179,19 @@ void stk8321_cfg_slope_thd(uint8_t thd)
     stk8321_write_reg(REG_SLOPE_DUR, thd);
 }
 
+/* REG 0x36 */
+void stk8321_rst_offset(void)
+{
+    stk8321_write_reg(REG_OFST_RESET, 0x01);
+}
+
+/* REG 0x38, 0x39, 0x3A*/
+void stk8321_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset)
+{
+    stk8321_write_reg(REG_OFST_X, x_offset);
+    stk8321_write_reg(REG_OFST_Y, y_offset);
+    stk8321_write_reg(REG_OFST_Z, z_offset);
+}
 
 /*============= GET DATA FUNCTIONS ================*/
 uint8_t stk8321_read_chip_id(void)
@@ -210,11 +240,24 @@ uint16_t stk8321_read_accel_z(void)
     msb_val = values[1];
     return (msb_val << 4) | lsb_val;
 }
-
-uint8_t stk8321_read_int_status(void) {
+/* REG 0x09, 0x0A */
+uint8_t stk8321_read_int_sts(void)
+{
     uint8_t size = 2;
     uint8_t values[size];
+    uint8_t ret = 0x00;
     stk8321_read_reg(REG_MOT_INT_STS, values, size);
+    ret |= values[1];
+    stk8321_read_reg(REG_DAT_INT_STS, values, size);
+    ret |= values[1];
+    return ret;
+}
+/* REG 0x0C */
+uint8_t stk8321_read_fifo_sts(void)
+{
+    uint8_t size = 2;
+    uint8_t values[size];
+    stk8321_read_reg(REG_FIFO_STS, values, size);
     return values[1];
 }
 

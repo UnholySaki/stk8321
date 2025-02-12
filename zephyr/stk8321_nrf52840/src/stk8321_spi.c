@@ -4,11 +4,7 @@
 static struct spi_dt_spec spi_spec;
 
 /* Zephyr specific */
-#define ZEPHYR_OS
-//#define ARDUINO_ESP32
-//#define STM32
-
-#ifdef ZEPHYR_OS
+#if defined (ZEPHYR_OS)
 void stk8321_set_spi_spec(struct spi_dt_spec spispec)
 {
     spi_spec = spispec;

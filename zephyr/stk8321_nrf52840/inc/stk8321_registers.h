@@ -36,12 +36,11 @@
 #define FIFO_WTRMRK_STS_BIT 0x20 // 1: FIFO watermark reached, 0: FIFO watermark not reached
 #define DATA_RDY_STS_BIT 0x40    // 1: New data ready, 0: No new data
 
-/* ============*/
+/* This register contains any-motion (slope) detection information. */
+#define REG_EVENT_INFO_1 0x0B
 
-// still some regs here that I dont define yet
-// propably not needed for now
-
-/* ================*/
+/* This register contains FIFO status flags. */
+#define REG_FIFO_STS 0x0C
 
 /* This register contains the acceleration sensing range. It is recommended that set the suspend mode before changing
 the register RANGESEL(0x0F) to ensure correct output data*/
@@ -92,6 +91,9 @@ register XOUT1/XOUT2, YOUT1/YOUT2, ZOUT1/ZOUT2 are updated. */
 #define DAT_PROT_BIT 0x20 // 1: Data protected, 0: Data not protected
 #define DAT_FILT_BIT 0x40 // 1: Data unfiltered, 0: Data filtered
 
+/* This register is used to software reset. Write 0xB6 into SWRST to reset all the registers to default value. */
+#define REG_SW_RST 0x14
+#define HARD_RST_VAL 0xB6
 /* This register contains the X, Y, Z slope interrupt enable bit. */
 #define REG_INT_EN_1 0x16
 #define SLP_EN_X_BIT 0x01 // 1: X slope interrupt enabled, 0: X slope interrupt disabled
@@ -138,12 +140,6 @@ equal to SLP_DUR[1:0] + 1.*/
 /* This register is used to set the threshold value for the slope detection. The actual slope threshold will depend on
 sensing range = SLP_THD[7:0] * (3.91/7.81/15.63) (mg) cor. to 2/4/8g. The default value of SLP_THD[7:0] is 0x14. */
 #define REG_SLOPE_THD 0x28
-
-
-
-
-
-
 
 /* This register is used to set the skip time for the significant motion. Holding the duration for skip, for which the motion is
 checked for re-detection. 1 LSB=20 ms. Range is 0 to 10sec. The default value of SKIP_TIME[8:0] is 0x96 correspond

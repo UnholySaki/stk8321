@@ -87,7 +87,7 @@ int main(void)
 	peripheral_init();
 
 	stk8321_set_spi_spec(spispec);
-	stk8321_init();
+	stk8321_init(DEF_RANGE, DEF_BW);
 	uint16_t chip_id = stk8321_read_chip_id();
 
 	printk("Hello World! %s (id#%d)\n", CONFIG_BOARD, chip_id);
@@ -108,7 +108,7 @@ int main(void)
 			   ((double)accel_y) / 1024,
 			   ((double)accel_z) / 1024);
 
-		uint8_t int_status = stk8321_read_int_status();
+		uint8_t int_status = stk8321_read_int_sts();
 		if (int_status & SIG_MOT_STS_BIT)
 		{
 			printk("Significant motion detected\n");
