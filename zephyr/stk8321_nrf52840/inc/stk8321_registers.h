@@ -32,10 +32,9 @@
 /* This register contains the new data interrupt status in STK8321.*/
 #define REG_DAT_INT_STS 0x0A
 /* Values for interrupts status*/
-#define FIFO_FULL_STS_BIT 0x10 // 1: FIFO full, 0: FIFO not full
+#define FIFO_FULL_STS_BIT 0x10   // 1: FIFO full, 0: FIFO not full
 #define FIFO_WTRMRK_STS_BIT 0x20 // 1: FIFO watermark reached, 0: FIFO watermark not reached
-#define DATA_RDY_STS_BIT 0x40 // 1: New data ready, 0: No new data
-
+#define DATA_RDY_STS_BIT 0x40    // 1: New data ready, 0: No new data
 
 /* ============*/
 
@@ -99,11 +98,10 @@ register XOUT1/XOUT2, YOUT1/YOUT2, ZOUT1/ZOUT2 are updated. */
 #define SLP_EN_Y_BIT 0x02 // 1: Y slope interrupt enabled, 0: Y slope interrupt disabled
 #define SLP_EN_Z_BIT 0x04 // 1: Z slope interrupt enabled, 0: Z slope interrupt disabled
 
-
 /* This register contains new data, fifo full, fifo watermark interrupt enable bit. */
 #define REG_INT_EN_2 0x17
-#define DATA_RDY_EN_BIT 0x10 // 1: New data ready interrupt enabled, 0: New data ready interrupt disabled
-#define FIFO_FULL_EN_BIT 0x20 // 1: FIFO full interrupt enabled, 0: FIFO full interrupt disabled
+#define DATA_RDY_EN_BIT 0x10    // 1: New data ready interrupt enabled, 0: New data ready interrupt disabled
+#define FIFO_FULL_EN_BIT 0x20   // 1: FIFO full interrupt enabled, 0: FIFO full interrupt disabled
 #define FIFO_WTRMRK_EN_BIT 0x40 // 1: FIFO watermark interrupt enabled, 0: FIFO watermark interrupt disabled
 
 /*This register is used to map the related interrupt to the desired INT pin. */
@@ -115,12 +113,12 @@ register XOUT1/XOUT2, YOUT1/YOUT2, ZOUT1/ZOUT2 are updated. */
 
 /* This register is used to map the related interrupt to the desired INT pin. */
 #define REG_INT_MAP_2 0x1A
-#define DATA_2_INT1_BIT 0x01 // 1: Map new data interrupt to INT1, 0: Do not map new data interrupt to INT1
-#define FIFO_WM_2_INT1_BIT 0x02  // 1: Map FIFO watermark interrupt to INT1, 0: Do not map FIFO watermark interrupt to INT1
+#define DATA_2_INT1_BIT 0x01      // 1: Map new data interrupt to INT1, 0: Do not map new data interrupt to INT1
+#define FIFO_WM_2_INT1_BIT 0x02   // 1: Map FIFO watermark interrupt to INT1, 0: Do not map FIFO watermark interrupt to INT1
 #define FIFO_FULL_2_INT1_BIT 0x04 // 1: Map FIFO full interrupt to INT1, 0: Do not map FIFO full interrupt to INT1
 #define FIFO_FULL_2_INT2_BIT 0x20 // 1: Map FIFO full interrupt to INT2, 0: Do not map FIFO full interrupt to INT2
-#define FIFO_WM_2_INT2_BIT 0x40  // 1: Map FIFO watermark interrupt to INT2, 0: Do not map FIFO watermark interrupt to INT2
-#define DATA_2_INT2_BIT 0x80 // 1: Map new data interrupt to INT2, 0: Do not map new data interrupt to INT2
+#define FIFO_WM_2_INT2_BIT 0x40   // 1: Map FIFO watermark interrupt to INT2, 0: Do not map FIFO watermark interrupt to INT2
+#define DATA_2_INT2_BIT 0x80      // 1: Map new data interrupt to INT2, 0: Do not map new data interrupt to INT2
 
 /* This register is used to define the INT1 and INT2 pins output type and active level. Open-drain or Push-pull output
 type and active high or active low can be selected. */
@@ -133,10 +131,31 @@ type and active high or active low can be selected. */
 /* This register is used to reset latched interrupt pin and select the interrupt mode. */
 #define REG_INT_CFG_2 0x21
 
-/* =============*/
-// Im lazy rightnow so I will leave the unused registers for my future self
-// I will define them when I need them
-/* =============*/
+/* This register is used to set the number of samples needed in slope detection. The actual number of samples will be
+equal to SLP_DUR[1:0] + 1.*/
+#define REG_SLOPE_DUR 0x27
+
+/* This register is used to set the threshold value for the slope detection. The actual slope threshold will depend on
+sensing range = SLP_THD[7:0] * (3.91/7.81/15.63) (mg) cor. to 2/4/8g. The default value of SLP_THD[7:0] is 0x14. */
+#define REG_SLOPE_THD 0x28
+
+
+
+
+
+
+
+/* This register is used to set the skip time for the significant motion. Holding the duration for skip, for which the motion is
+checked for re-detection. 1 LSB=20 ms. Range is 0 to 10sec. The default value of SKIP_TIME[8:0] is 0x96 correspond
+to 3 seconds. */
+#define REG_SIG_MOT_1 0x29
+/* This register contains MSB of SKIP_TIME[8:0] for the significant motion, and significant motion interrupt enable bit.*/
+#define REG_SIG_MOT_2 0x2A
+#define SIG_MOT_EN_BIT 0x02
+/* This register is used to set the proof time for the significant motion. Holding the duration for proof, for which the motion
+is re-checked after. 1 LSB=20 ms. Range is 0 to 2.5sec. The default value of PROOF_TIME[8:0] is 0x32 correspond to
+1 seconds. */
+#define REG_SIG_MOT_3 0x2B
 
 /* This register is used to reset the setting to zero for the offset compensation. */
 #define REG_OFST_RESET 0x36 // 1: Reset the offset compensation setting to zero
@@ -145,6 +164,5 @@ type and active high or active low can be selected. */
 #define REG_OFST_X 0x38 // 8-BIT, 7.81mg per LSB
 #define REG_OFST_Y 0x39 // 8-BIT, 7.81mg per LSB
 #define REG_OFST_Z 0x3A // 8-BIT, 7.81mg per LSB
-
 
 #endif // STK8321_REGISTERS_H

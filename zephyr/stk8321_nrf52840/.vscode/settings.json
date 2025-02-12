@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "stk8321_spi.h": "c"
+        "stk8321_spi.h": "c",
+        "typeinfo": "c",
+        "type_traits": "c"
     }
 }

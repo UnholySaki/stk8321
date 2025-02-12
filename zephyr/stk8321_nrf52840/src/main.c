@@ -17,13 +17,49 @@
 #include "../inc/main.h"
 #include "../inc/stk8321.h"
 #include "../inc/stk8321_spi.h"
+#include "../inc/stk8321_registers.h"
 
-const struct gpio_dt_spec ledspec = GPIO_DT_SPEC_GET(DT_NODELABEL(led0), gpios);
+const struct gpio_dt_spec led_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(led0), gpios);
+const struct gpio_dt_spec intpin_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(intpin1), gpios);
 
 /* STEP 3 - Retrieve the API-device structure */
 #define SPIOP SPI_WORD_SET(8) | SPI_TRANSFER_MSB
-struct spi_dt_spec spispec = SPI_DT_SPEC_GET(DT_NODELABEL(bme280), SPIOP, 0);
+struct spi_dt_spec spispec = SPI_DT_SPEC_GET(DT_NODELABEL(stk8321), SPIOP, 0);
 
+static struct gpio_callback intpin_cb_data;
+
+void intpin_triggered(const struct device *dev, struct gpio_callback *cb,
+					  uint32_t pins)
+{
+	printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+}
+
+static int int_pin_init(void)
+{
+	int ret;
+	if (!gpio_is_ready_dt(&intpin_spec))
+	{
+		return 0;
+	}
+
+	ret = gpio_pin_configure_dt(&intpin_spec, GPIO_INPUT);
+	if (ret != 0)
+	{
+		return 0;
+	}
+
+	ret = gpio_pin_interrupt_configure_dt(&intpin_spec,
+										  GPIO_INT_EDGE_TO_ACTIVE);
+	if (ret != 0)
+	{
+		return 0;
+	}
+
+	gpio_init_callback(&intpin_cb_data, intpin_triggered, BIT(intpin_spec.pin));
+	gpio_add_callback(intpin_spec.port, &intpin_cb_data);
+	printk("Set up intpin at %s pin %d\n", intpin_spec.port->name, intpin_spec.pin);
+	return 0;
+}
 static int peripheral_init(void)
 {
 	int err;
@@ -34,11 +70,13 @@ static int peripheral_init(void)
 		return 0;
 	}
 
-	if (!gpio_is_ready_dt(&ledspec))
+	if (!gpio_is_ready_dt(&led_spec))
 		return false;
 
-	if (gpio_pin_configure_dt(&ledspec, GPIO_OUTPUT_INACTIVE) < 0)
+	if (gpio_pin_configure_dt(&led_spec, GPIO_OUTPUT_INACTIVE) < 0)
 		return false;
+
+	int_pin_init();
 
 	return 0;
 }
@@ -50,9 +88,9 @@ int main(void)
 
 	stk8321_set_spi_spec(spispec);
 	stk8321_init();
-	stk8321_read_chip_id();
+	uint16_t chip_id = stk8321_read_chip_id();
 
-	printk("Hello World! %s\n", CONFIG_BOARD);
+	printk("Hello World! %s (id#%d)\n", CONFIG_BOARD, chip_id);
 
 	while (1)
 	{
@@ -63,15 +101,24 @@ int main(void)
 		 * 2 means the acceleration is +-2g
 		 */
 		accel_x = stk8321_read_accel_x();
-		printk("Accel X: %.4f\n", (float) accel_x / 1024);
-
 		accel_y = stk8321_read_accel_y();
-		printk("Accel Y: %.4f\n", (float) accel_y / 1024);
-
 		accel_z = stk8321_read_accel_z();
-		printk("Accel Z: %.4f\n", (float) accel_z / 1024);
+		printk("Accel values: X: %.2f, Y: %.2f, Z: %.2f\n",
+			   ((double)accel_x) / 1024,
+			   ((double)accel_y) / 1024,
+			   ((double)accel_z) / 1024);
 
-		gpio_pin_toggle_dt(&ledspec);
+		uint8_t int_status = stk8321_read_int_status();
+		if (int_status & SIG_MOT_STS_BIT)
+		{
+			printk("Significant motion detected\n");
+		}
+		else if (int_status & ANY_MOT_STS_BIT)
+		{
+			printk("Any motion detected\n");
+		}
+
+		gpio_pin_toggle_dt(&led_spec);
 		k_msleep(DELAY_VALUES);
 	}
 
