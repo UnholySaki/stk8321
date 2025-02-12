@@ -94,7 +94,7 @@ void stk8321_cfg_slope_dur(uint8_t dur);
 /* REG 0x28 */
 void stk8321_cfg_slope_thd(uint8_t thd);
 /* REG 0x36 */
-void stk8321_reset_offset(void);
+void stk8321_rst_offset(void);
 /* REG 0x38, 0x39, 0x3A*/
 void stk8321_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset);
 

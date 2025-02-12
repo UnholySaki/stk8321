@@ -54,11 +54,3 @@ The STK8321 is a low-power, high-performance 3-axis accelerometer. This project 
 2. Connect the STK8321 accelerometer to the NRF52840 Development Kit.
 3. Monitor the output using a serial terminal.
 
-## Contributing
-Contributions are welcome! Please fork the repository and submit a pull request.
-
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Additional Information
-Please find my information in the profile to contact me.

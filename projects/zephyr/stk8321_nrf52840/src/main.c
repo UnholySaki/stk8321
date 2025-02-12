@@ -1,23 +1,18 @@
-/*
- * Copyright (c) 2024 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
- */
+
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/printk.h>
 
-/* STEP 1.2 - Include the header files for SPI, GPIO and devicetree */
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/spi.h>
 
 #include "../inc/main.h"
-#include "../inc/stk8321.h"
-#include "../inc/stk8321_spi.h"
-#include "../inc/stk8321_registers.h"
+#include "../../../../inc/stk8321.h"
+#include "../../../../inc/stk8321_spi.h"
+#include "../../../../inc/stk8321_registers.h"
 
 const struct gpio_dt_spec led_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(led0), gpios);
 const struct gpio_dt_spec intpin_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(intpin1), gpios);

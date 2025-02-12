@@ -21,6 +21,11 @@
 #error "No platform defined. Please define one platform."
 #endif
 
+#if defined(ZEPHYR_OS)
+#include <zephyr/drivers/spi.h>
+#endif // ZEPHYR_OS
+
+
 /* device specific */
 void stk8321_set_spi_spec(struct spi_dt_spec spispec);
 

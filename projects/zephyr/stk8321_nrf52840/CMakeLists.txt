@@ -9,6 +9,7 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(nrf_connect_sdk_intermediate)
 
 FILE(GLOB app_sources src/*.c)
-
+FILE(GLOB lib_sources ../../../src/*.c)
 
 target_sources(app PRIVATE ${app_sources})
+target_sources(app PRIVATE ${lib_sources})

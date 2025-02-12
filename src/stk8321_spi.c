@@ -1,10 +1,16 @@
+#include "../inc/stk8321_spi.h"
+
+#if defined(ZEPHYR_OS)
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/spi.h>
+#elif defined(ARDUINO_ESP32)
+#elif defined(STM32)
+#endif // ZEPHYR_OS
 
 static struct spi_dt_spec spi_spec;
 
 /* Zephyr specific */
-#if defined (ZEPHYR_OS)
+#if defined(ZEPHYR_OS)
 void stk8321_set_spi_spec(struct spi_dt_spec spispec)
 {
     spi_spec = spispec;
