@@ -53,14 +53,6 @@ typedef enum
 #define DEF_INT_OD_MODE false
 #define DEF_INT_LV_MODE true
 
-/* Significant motion detection parameters */
-#define SIG_MOT_SKIP_TIME 0x0A  // 100ms - def: 0x96 (3 seconds)
-#define SIG_MOT_PROOF_TIME 0x32 // def: 0x32 (1 second)
-#define SLOPE_DUR 0x00          // def: 0x00 (1 sample)
-#define SLOPE_THD 0x14          // def: 0x14 (20mg)
-#define SIG_MOT_INT_PIN SIG_MOT_2_INT1_BIT
-#define INT_LATCH_MODE NON_LATCHED_0
-
 /*==================== PRESET FUNCTIONS =========================*/
 void stk8321_init(uint8_t range, uint8_t bw);
 
@@ -68,15 +60,16 @@ void stk8321_init(uint8_t range, uint8_t bw);
  * @brief Configure the STK8321 to detect significant motion with default settings
  * @note for further details refer to the datasheet
  */
-void stk8321_cfg_en_sig_motion(void);
-
+void stk8321_cfg_en_sig_motion(int_pin_e int_pin, uint8_t skip_time,
+                               uint8_t proof_time, uint8_t slope_dur,
+                               uint8_t slope_thd, uint8_t latch_mode);
 /*========= SETUP FUNCTIONS ===========*/
 /* REG 0x0F */
-void stk8321_set_range(uint8_t range);
+void stk8321_cfg_set_range(uint8_t range);
 /* REG 0x10 */
-void stk8321_set_bandwidth(uint8_t bandwidth);
+void stk8321_cfg_set_bandwidth(uint8_t bandwidth);
 /* REG 0x11 */
-void stk8321_pwr_mode_set(uint8_t mode);
+void stk8321_cfg_set_pwr_mode(uint8_t mode);
 /* REG 0x13 */
 void stk8321_cfg_data_setup(bool is_protected, bool is_filtered);
 /* REG 0x14 */
@@ -96,7 +89,7 @@ void stk8321_cfg_slope_thd(uint8_t thd);
 /* REG 0x36 */
 void stk8321_rst_offset(void);
 /* REG 0x38, 0x39, 0x3A*/
-void stk8321_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset);
+void stk8321_cfg_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset);
 
 /*========= GET DATA FUNCTIONAS ==========*/
 /* REG 0x00 -  Read chip identification code, expecting - 0x23. */

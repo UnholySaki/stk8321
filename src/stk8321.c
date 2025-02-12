@@ -15,30 +15,28 @@ static uint8_t cur_pow_state = POWMODE_ACTIVE;
 
 void stk8321_init(uint8_t range, uint8_t bw)
 {
-    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+    stk8321_cfg_set_pwr_mode(POWMODE_SUSPEND);
 
     /* Setup parameters */
-    stk8321_set_range(RANGE_2G);
-    stk8321_set_bandwidth(BW_31_25_HZ);
+    stk8321_cfg_set_range(RANGE_2G);
+    stk8321_cfg_set_bandwidth(BW_31_25_HZ);
     stk8321_cfg_data_setup(DEF_DATA_PROTECTED, DEF_DATA_FILTERED);
     stk8321_rst_offset();
 
     /*set up interrupt pins*/
     stk8321_cfg_int_pin(INT_PIN_1, DEF_INT_OD_MODE, DEF_INT_LV_MODE); // INT1 is push-pull and active high
-    stk8321_cfg_en_sig_motion();
-    stk8321_cfg_int_pin_latch(INT_LATCH_MODE);
-
-    stk8321_pwr_mode_set(POWMODE_ACTIVE);
+    
+    stk8321_cfg_set_pwr_mode(POWMODE_ACTIVE);
 }
 
-void stk8321_cfg_en_sig_motion(void)
+void stk8321_cfg_en_sig_motion(int_pin_e int_pin, uint8_t skip_time, uint8_t proof_time, uint8_t slope_dur, uint8_t slope_thd, uint8_t latch_mode)
 {
     /* Step 1: Enable sig motion specific registers*/
-    stk8321_write_reg(REG_SIG_MOT_1, SIG_MOT_SKIP_TIME);
-    stk8321_write_reg(REG_SIG_MOT_3, SIG_MOT_PROOF_TIME);
+    stk8321_write_reg(REG_SIG_MOT_1, skip_time);
+    stk8321_write_reg(REG_SIG_MOT_3, proof_time);
 
-    stk8321_cfg_slope_dur(SLOPE_DUR);
-    stk8321_cfg_slope_thd(SLOPE_THD);
+    stk8321_cfg_slope_dur(slope_dur);
+    stk8321_cfg_slope_thd(slope_thd);
     /* Step 2: Enable slope detection*/
     stk8321_cfg_en_int_1(true, true, true);
 
@@ -46,29 +44,31 @@ void stk8321_cfg_en_sig_motion(void)
     stk8321_write_reg(REG_SIG_MOT_2, SIG_MOT_EN_BIT);
 
     /* Step 4: map sig motion to pin 1*/
-    stk8321_cfg_set_int1_map(SIG_MOT_INT_PIN);
+    stk8321_cfg_set_int1_map(int_pin);
+    stk8321_cfg_int_pin_latch(latch_mode);
+
 }
 
 /*======================== SETUP FUNCTIONS ===========================*/
 
 /* REG 0x0F */
-void stk8321_set_range(uint8_t range)
+void stk8321_cfg_set_range(uint8_t range)
 {
-    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+    stk8321_cfg_set_pwr_mode(POWMODE_SUSPEND);
     stk8321_write_reg(REG_RANGESEL, range);
-    stk8321_pwr_mode_set(POWMODE_ACTIVE);
+    stk8321_cfg_set_pwr_mode(POWMODE_ACTIVE);
 }
 
 /* REG 0x10 */
-void stk8321_set_bandwidth(uint8_t bandwidth)
+void stk8321_cfg_set_bandwidth(uint8_t bandwidth)
 {
-    stk8321_pwr_mode_set(POWMODE_SUSPEND);
+    stk8321_cfg_set_pwr_mode(POWMODE_SUSPEND);
     stk8321_write_reg(REG_BANDWIDTHSEL, bandwidth);
-    stk8321_pwr_mode_set(POWMODE_ACTIVE);
+    stk8321_cfg_set_pwr_mode(POWMODE_ACTIVE);
 }
 
 /* REG 0x11 */
-void stk8321_pwr_mode_set(uint8_t power_mode)
+void stk8321_cfg_set_pwr_mode(uint8_t power_mode)
 {
     if (power_mode == cur_pow_state)
     {
@@ -186,7 +186,7 @@ void stk8321_rst_offset(void)
 }
 
 /* REG 0x38, 0x39, 0x3A*/
-void stk8321_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset)
+void stk8321_cfg_set_offset(uint8_t x_offset, uint8_t y_offset, uint8_t z_offset)
 {
     stk8321_write_reg(REG_OFST_X, x_offset);
     stk8321_write_reg(REG_OFST_Y, y_offset);

@@ -4,19 +4,19 @@
 &i2c1 {status = "disabled";};
 
 &spi2 {
-	compatible = "nordic,nrf-spim";
-	status = "okay";
-	pinctrl-0 = <&spi2_default>;
-	pinctrl-1 = <&spi2_sleep>;
-	pinctrl-names = "default", "sleep";
-	cs-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
-	bme280: bme280@0 {
-		compatible = "bosch,bme280";
-		reg = <0>;
-		spi-max-frequency = <1000000>;
-		spi-cpol;
-		spi-cpha;
-	};
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi2_default>;
+    pinctrl-1 = <&spi2_sleep>;
+    pinctrl-names = "default", "sleep";
+    cs-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
+    stk8321: stk8321@0 {
+        compatible = "bosch,bme280";
+        reg = <0>;
+        spi-max-frequency = <1000000>;
+        spi-cpol;
+        spi-cpha;
+    };
 };
 
 /* STEP 2.2 - Change the pin configuration */

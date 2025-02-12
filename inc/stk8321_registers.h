@@ -26,8 +26,8 @@
 /* This register contains the motion interrupts status in STK8321. */
 #define REG_MOT_INT_STS 0x09
 /* Values for interrupts status*/
-#define SIG_MOT_STS_BIT 0x00 // 1: Motion detected, 0: No motion detected
-#define ANY_MOT_STS_BIT 0x02 // 1: Any motion detected, 0: No motion detected
+#define SIG_MOT_STS_BIT 0x01 // 1: Motion detected, 0: No motion detected
+#define ANY_MOT_STS_BIT 0x04 // 1: Any motion detected, 0: No motion detected
 
 /* This register contains the new data interrupt status in STK8321.*/
 #define REG_DAT_INT_STS 0x0A

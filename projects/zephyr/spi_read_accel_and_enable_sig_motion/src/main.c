@@ -26,7 +26,7 @@ static struct gpio_callback intpin_cb_data;
 void intpin_triggered(const struct device *dev, struct gpio_callback *cb,
 					  uint32_t pins)
 {
-	printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+	printk("Significant motion detected at %" PRIu32 "\n", k_cycle_get_32());
 }
 
 static int int_pin_init(void)
@@ -55,7 +55,7 @@ static int int_pin_init(void)
 	printk("Set up intpin at %s pin %d\n", intpin_spec.port->name, intpin_spec.pin);
 	return 0;
 }
-static int peripheral_init(void)
+static int app_zephyr_peripheral_init(void)
 {
 	int err;
 
@@ -75,14 +75,20 @@ static int peripheral_init(void)
 
 	return 0;
 }
+static void app_stk8321_init(void)
+{
+	stk8321_set_spi_spec(&spispec);
+	stk8321_init(DEF_RANGE, DEF_BW);
+	stk8321_cfg_en_sig_motion(SIG_MOT_INT_PIN, SIG_MOT_SKIP_TIME, SIG_MOT_PROOF_TIME,
+							  SLOPE_DUR, SLOPE_THD, INT_LATCH_MODE);
+}
 
 int main(void)
 {
 	uint16_t accel_x, accel_y, accel_z;
-	peripheral_init();
+	app_zephyr_peripheral_init();
+	app_stk8321_init();
 
-	stk8321_set_spi_spec(spispec);
-	stk8321_init(DEF_RANGE, DEF_BW);
 	uint16_t chip_id = stk8321_read_chip_id();
 
 	printk("Hello World! %s (id#%d)\n", CONFIG_BOARD, chip_id);
